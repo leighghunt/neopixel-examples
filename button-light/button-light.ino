@@ -9,7 +9,7 @@
 #define PIN            6
 
 // How many NeoPixels are attached to the Arduino?
-#define NUMPIXELS      16
+#define NUMPIXELS      32
 
 // When we setup the NeoPixel library, we tell it how many pixels, and which pin to use to send signals.
 // Note that for older NeoPixel strips you might need to change the third parameter--see the strandtest
@@ -33,6 +33,7 @@ int lastButtonStateDecrease = 0;     // previous state of the button
 bool decrease = false;
 bool increase = false;
 int lightValue = 0;
+int prevLightValue = 0;
 
 int msIncreaseButtonOn = 0;
 int msDecreaseButtonOn = 0;
@@ -76,6 +77,7 @@ void loop() {
       msIncreaseButtonOn = 0;
       increase = false;
       Serial.println("Increase off"); 
+      Serial.println(lightValue);
     }
   }
  
@@ -101,6 +103,7 @@ void loop() {
       // wend from on to off:
       decrease = false;
       Serial.println("Decrease off"); 
+      Serial.println(lightValue);
     }
   }
   // save the current state as the last state, 
@@ -123,20 +126,33 @@ void loop() {
     }
   }
 
-  // Square curve
-  double adjustedLightValue = lightValue/(255*NUMPIXELS);
-  adjustedLightValue *= adjustedLightValue;
-  adjustedLightValue = lightValue*(255*NUMPIXELS);
+  if(lightValue!=prevLightValue)
+  {
+    prevLightValue = lightValue;
+
+    // Cube curve
+    //Serial.println(lightValue);
+    double adjustedLightValue = lightValue;
+    //Serial.println(adjustedLightValue); 
+    adjustedLightValue /= (255*NUMPIXELS);
+    //Serial.println(adjustedLightValue); 
+    adjustedLightValue *= adjustedLightValue;
+    //adjustedLightValue *= adjustedLightValue;
+    //adjustedLightValue *= adjustedLightValue;
+    adjustedLightValue *= (255*NUMPIXELS);
+
+    //Serial.println(adjustedLightValue); 
+    //Serial.println("======================="); 
+
+    if(msIncreaseButtonOn > 0 && (millis() - msIncreaseButtonOn) > 1000);
   
-  if(msIncreaseButtonOn > 0 && (millis() - msIncreaseButtonOn) > 1000);
-
-  for(int i=0;i<NUMPIXELS;i++){
-    int pixelValue = (lightValue + i)/NUMPIXELS;
-    //Serial.println(pixelValue);
-    pixels.setPixelColor(i, pixels.Color(pixelValue,pixelValue,pixelValue));
+    for(int i=0;i<NUMPIXELS;i++){
+      int pixelValue = (adjustedLightValue + i)/NUMPIXELS;
+      //Serial.println(pixelValue);
+      pixels.setPixelColor(i, pixels.Color(pixelValue,pixelValue,pixelValue));
+    }
+    pixels.show();
+    //delay(5);
   }
-  pixels.show();
-  delay(5);
-
 }
 
